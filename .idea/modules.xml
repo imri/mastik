@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/mastik.iml" filepath="$PROJECT_DIR$/mastik.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mastik-graph/mastik-graph.iml" filepath="$PROJECT_DIR$/mastik-graph/mastik-graph.iml" />
     </modules>
   </component>
 </project>
