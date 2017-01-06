@@ -4,7 +4,7 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import org.mastik.structure.MastikBackend;
+import org.mastik.Backend;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -19,9 +19,9 @@ public class BaseMastikElement<TProperty extends Property> implements Element {
     private String id;
     private String label;
     private Map<String, TProperty> properties;
-    private MastikBackend backend;
+    private Backend backend;
 
-    public BaseMastikElement(String id, String label, Map<String, TProperty> properties, MastikBackend backend) {
+    public BaseMastikElement(String id, String label, Map<String, TProperty> properties, Backend backend) {
 
         this.id = id;
         this.label = label;
@@ -62,7 +62,7 @@ public class BaseMastikElement<TProperty extends Property> implements Element {
     /**
      * Gets the backend, used for fetching element data from store
      */
-    protected MastikBackend backend() {
+    protected Backend backend() {
         return backend;
     }
 
@@ -113,6 +113,13 @@ public class BaseMastikElement<TProperty extends Property> implements Element {
     }
 
     /**
+     * @return An exception indicating that elements do not point to their parent elements
+     */
+    public static IllegalStateException noParentPointerException() {
+        return new IllegalStateException("Mastik elements do not point to their parent element");
+    }
+
+    /**
      * Add or set a property value for the {@code Element} given its key.
      */
     @Override
@@ -137,4 +144,5 @@ public class BaseMastikElement<TProperty extends Property> implements Element {
     public boolean equals(final Object object) {
         return ElementHelper.areEqual(this, object);
     }
+
 }

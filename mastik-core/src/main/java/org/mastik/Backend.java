@@ -1,4 +1,4 @@
-package org.mastik.structure;
+package org.mastik;
 
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * @author imriqwe (imriqwe@gmail.com)
  * @since 12/28/16
  */
-public interface MastikBackend {
+public interface Backend {
 
     /**
      * A org.mastik.structure.query which is not pointed to any specific element in the graph

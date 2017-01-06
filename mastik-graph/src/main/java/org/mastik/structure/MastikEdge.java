@@ -4,6 +4,7 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.mastik.Backend;
 import org.mastik.structure.base.BaseMastikEdge;
 
 import java.util.Map;
@@ -20,7 +21,7 @@ public class MastikEdge extends BaseMastikEdge implements Edge {
     private Vertex inVertex;
     private Vertex outVertex;
 
-    public MastikEdge(String id, String label, Map<String, Property> properties, Vertex inVertex, Vertex outVertex, MastikBackend backend) {
+    public MastikEdge(String id, String label, Map<String, Property> properties, Vertex inVertex, Vertex outVertex, Backend backend) {
         super(id, label, properties, backend);
 
         this.outVertex = outVertex;

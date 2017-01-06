@@ -3,6 +3,7 @@ package org.mastik.structure;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.HasContainer;
 import org.apache.tinkerpop.gremlin.structure.*;
+import org.mastik.Backend;
 import org.mastik.structure.base.BaseMastikVertex;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.VertexQuery;
@@ -19,7 +20,7 @@ import java.util.stream.Stream;
  */
 public class MastikVertex extends BaseMastikVertex {
 
-    public MastikVertex(String id, Map<String, VertexProperty> properties, MastikBackend backend) {
+    public MastikVertex(String id, Map<String, VertexProperty> properties, Backend backend) {
         super(id, properties, backend);
     }
 

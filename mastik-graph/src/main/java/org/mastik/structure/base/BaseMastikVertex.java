@@ -4,7 +4,7 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import org.mastik.structure.MastikBackend;
+import org.mastik.Backend;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  */
 public abstract class BaseMastikVertex extends BaseMastikElement<VertexProperty> implements Vertex {
 
-    public BaseMastikVertex(String id, Map<String, VertexProperty> properties, MastikBackend backend) {
+    public BaseMastikVertex(String id, Map<String, VertexProperty> properties, Backend backend) {
         super(id, Vertex.DEFAULT_LABEL, properties, backend);
     }
 

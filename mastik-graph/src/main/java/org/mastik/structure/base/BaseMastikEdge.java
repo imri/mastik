@@ -4,7 +4,7 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import org.mastik.structure.MastikBackend;
+import org.mastik.Backend;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * @since  1/6/17
  */
 public abstract class BaseMastikEdge extends BaseMastikElement implements Edge {
-    public BaseMastikEdge(String id, String label, Map properties, MastikBackend backend) {
+    public BaseMastikEdge(String id, String label, Map properties, Backend backend) {
         super(id, label, properties, backend);
     }
 

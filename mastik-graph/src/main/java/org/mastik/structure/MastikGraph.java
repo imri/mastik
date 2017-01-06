@@ -7,6 +7,7 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
+import org.mastik.Backend;
 import org.mastik.structure.base.BaseMastikGraph;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.Query;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
  */
 public class MastikGraph extends BaseMastikGraph {
 
-    public MastikGraph(MastikBackend backend) {
+    public MastikGraph(Backend backend) {
         super(backend);
     }
 

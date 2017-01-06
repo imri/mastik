@@ -14,24 +14,22 @@ import java.util.Collections;
  * @since  1/6/17
  */
 public class MastikProperty<E extends Element, V> extends BaseMastikElement implements Property<V> {
-    private final E element;
     private final String key;
     private V value;
 
-    public MastikProperty(E element, String key, V value) {
-        super(generateId(element, key, value), null, Collections.emptyMap(), null);
+    public MastikProperty(String key, V value) {
+        super(generateId(key, value), null, Collections.emptyMap(), null);
         ElementHelper.validateProperty(key, value);
 
-        this.element = element;
         this.key = key;
         this.value = value;
     }
 
     /**
-     * Given an element, key and value, concatenates them
+     * Given a key and value, concatenates them
      */
-    public static <E extends Element, V> String generateId(E element, String key, V value) {
-        return Joiner.on("-").join(element.id(), key, value);
+    public static <E extends Element, V> String generateId(String key, V value) {
+        return Joiner.on("-").join(key, value);
     }
 
     /**
@@ -41,7 +39,7 @@ public class MastikProperty<E extends Element, V> extends BaseMastikElement impl
      */
     @Override
     public E element() {
-        return this.element;
+        throw BaseMastikElement.noParentPointerException();
     }
 
     /**

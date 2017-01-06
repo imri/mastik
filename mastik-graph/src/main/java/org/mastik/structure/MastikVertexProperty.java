@@ -10,7 +10,7 @@ import org.mastik.structure.base.BaseMastikVertex;
  * @since  1/6/17
  */
 public class MastikVertexProperty<V> extends MastikProperty<BaseMastikVertex,V> implements VertexProperty<V> {
-    public MastikVertexProperty(final BaseMastikVertex vertex, final String key, final V value) {
-        super(vertex, key, value);
+    public MastikVertexProperty(final String key, final V value) {
+        super(key, value);
     }
 }

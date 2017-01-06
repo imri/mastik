@@ -9,7 +9,7 @@ import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import org.mastik.structure.MastikBackend;
+import org.mastik.Backend;
 
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -24,9 +24,9 @@ public abstract class BaseMastikGraph implements Graph {
 
     private static final Configuration EMPTY_CONFIGURATION = new PropertiesConfiguration();
 
-    private MastikBackend backend;
+    private Backend backend;
 
-    public BaseMastikGraph(MastikBackend backend) {
+    public BaseMastikGraph(Backend backend) {
         this.backend = backend;
     }
 
@@ -252,7 +252,7 @@ public abstract class BaseMastikGraph implements Graph {
     /**
      * Gets the backend, used for fetching graph data from store
      */
-    protected MastikBackend backend() {
+    protected Backend backend() {
         return backend;
     }
 
