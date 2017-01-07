@@ -4,6 +4,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.javatuples.Pair;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +15,21 @@ import java.util.Set;
  * @since  1/6/17
  */
 public class Query<E extends Element> extends PredicatesQuery<E> {
+    /**
+     * Use this value to indicate this query is not limited in results number
+     */
+    public static int noLimit() { return -1; }
+
+    /**
+     * Use this object to indicate that this query is not ordered
+     */
+    public static List<Pair<String, Order>> noOrders() { return Collections.emptyList(); }
+
+    /**
+     * Use this object to indicate this query should return all properties
+     */
+    public static Set<String> allProperties() { return Collections.emptySet(); }
+
     private final Class<E> returnType;
     private final int limit;
     private final Set<String> propertyKeys;
