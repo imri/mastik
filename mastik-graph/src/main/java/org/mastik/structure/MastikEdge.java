@@ -21,7 +21,7 @@ public class MastikEdge extends BaseMastikEdge implements Edge {
     private Vertex inVertex;
     private Vertex outVertex;
 
-    public MastikEdge(String id, String label, Map<String, Property> properties, Vertex inVertex, Vertex outVertex, Backend backend) {
+    public MastikEdge(String id, String label, Map<String, Property> properties, Vertex outVertex, Vertex inVertex, Backend backend) {
         super(id, label, properties, backend);
 
         this.outVertex = outVertex;
@@ -32,10 +32,10 @@ public class MastikEdge extends BaseMastikEdge implements Edge {
      * {@inheritDoc}
      */
     public Stream<Vertex> verticesStream(Direction direction) {
-        if(direction == Direction.OUT)
+        if (direction == Direction.OUT)
             return Stream.of(outVertex);
 
-        if(direction == Direction.IN)
+        if (direction == Direction.IN)
             return Stream.of(inVertex);
 
         return Stream.of(outVertex, inVertex);

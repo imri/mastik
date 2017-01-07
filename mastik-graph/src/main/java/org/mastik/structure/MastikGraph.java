@@ -1,19 +1,18 @@
 package org.mastik.structure;
 
-import org.apache.tinkerpop.gremlin.process.traversal.P;
-import org.apache.tinkerpop.gremlin.process.traversal.step.util.HasContainer;
+import com.google.common.collect.Sets;
+import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Element;
-import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.mastik.Backend;
+import org.mastik.ElementUtils;
 import org.mastik.structure.base.BaseMastikGraph;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.Query;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -24,8 +23,12 @@ import java.util.stream.Stream;
  */
 public class MastikGraph extends BaseMastikGraph {
 
-    public MastikGraph(Backend backend) {
+    private final TraversalStrategies strategies;
+
+    public MastikGraph(Backend backend, TraversalStrategies strategies) {
         super(backend);
+
+        this.strategies = strategies;
     }
 
     /**
@@ -45,28 +48,16 @@ public class MastikGraph extends BaseMastikGraph {
     }
 
     private <E extends Element> Stream<E> queryIds(Class<E> returnType, Object[] ids) {
-        PredicatesTree idPredicate = createIdPredicate(ids, returnType);
+        ElementHelper.validateMixedElementIds(returnType, ids);
+
+        PredicatesTree idPredicate = ElementUtils.createIdsPredicate(Sets.newHashSet(ids));
         Query<E> query = new Query<>(returnType, idPredicate, -1, null, null);
 
         return backend().query(query);
     }
 
-    public static <E extends Element> PredicatesTree createIdPredicate(Object[] ids, Class<E> returnType) {
-        ElementHelper.validateMixedElementIds(returnType, ids);
-
-        if (ids.length == 0) {
-            return PredicatesTree.emptyTree();
-        }
-
-        List<Object> extractedIds = Stream.of(ids)
-                .map(id -> {
-                    if (id instanceof Element)
-                        return ((Element) id).id();
-                    return id;
-                })
-                .collect(Collectors.toList());
-
-        HasContainer idPredicate = new HasContainer(T.id.getAccessor(), P.within(extractedIds));
-        return PredicatesTree.createFromPredicates(idPredicate);
+    @Override
+    public GraphTraversalSource traversal() {
+        return new GraphTraversalSource(this, this.strategies);
     }
 }

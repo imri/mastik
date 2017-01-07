@@ -237,6 +237,11 @@ public abstract class BaseMastikGraph implements Graph {
     public abstract Stream<Edge> edgesStream(Object... edgeIds);
 
     /**
+     * Returns the backend of this graph
+     */
+    public Backend getBackend() { return this.backend; }
+
+    /**
      * Add a {@link Vertex} to the graph given an optional series of key/value pairs.  These key/values
      * must be provided in an even number where the odd numbered arguments are {@link String} property keys and the
      * even numbered arguments are the related property values.

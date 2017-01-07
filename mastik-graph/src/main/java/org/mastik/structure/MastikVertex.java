@@ -4,6 +4,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.HasContainer;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.mastik.Backend;
+import org.mastik.ElementUtils;
 import org.mastik.structure.base.BaseMastikVertex;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.VertexQuery;
@@ -54,20 +55,7 @@ public class MastikVertex extends BaseMastikVertex {
     /**
      * Given an edge of this vertex, extracts the vertex residing in the given direction from the edge
      */
-    private Vertex extractVertexFromEdge(Edge edge, Direction direction) {
-        switch (direction) {
-            case OUT:
-                return edge.inVertex();
-            case IN:
-                return edge.outVertex();
-            case BOTH:
-                Vertex outV = edge.outVertex();
-                Vertex inV = edge.inVertex();
-                if (this.id().equals(outV.id()))
-                    return inV;
-                return outV;
-            default:
-                throw new IllegalArgumentException(String.format("Direction '%s' is unsupported", direction.toString()));
-        }
+    public Vertex extractVertexFromEdge(Edge edge, Direction direction) {
+        return ElementUtils.extractVertexFromEdge(edge, this, direction);
     }
 }
