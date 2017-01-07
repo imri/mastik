@@ -11,9 +11,12 @@
     <modules>
         <module>mastik-graph</module>
         <module>mastik-core</module>
+        <module>mastik-optimizations</module>
+        <module>mastik-backend</module>
+        <module>mastik-tests</module>
     </modules>
 
-    <name>Mastik Graph</name>
+    <name>Mastik</name>
     <properties>
         <guava.version>20.0</guava.version>
         <maven.compiler.source>1.8</maven.compiler.source>

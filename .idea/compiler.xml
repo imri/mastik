@@ -6,14 +6,20 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="mastik-backend" />
         <module name="mastik-core" />
         <module name="mastik-graph" />
+        <module name="mastik-optimizations" />
+        <module name="mastik-tests" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
       <module name="mastik" target="1.8" />
+      <module name="mastik-backend" target="1.8" />
       <module name="mastik-core" target="1.8" />
       <module name="mastik-graph" target="1.8" />
+      <module name="mastik-optimizations" target="1.8" />
+      <module name="mastik-tests" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
