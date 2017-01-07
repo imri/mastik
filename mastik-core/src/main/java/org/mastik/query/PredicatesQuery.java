@@ -31,31 +31,46 @@ public class PredicatesQuery<E extends Element> {
      * @return True if the element passed the predicates, false otherwise
      */
     public boolean test(E element, PredicatesTree predicates) {
-        if (predicates.isAnd()) {
-            if (!HasContainer.testAll(element, Lists.newLinkedList(predicates.predicates()))) {
-                return false;
-            }
+        if (predicates.isEmpty()) {
+            return true;
+        }
 
-            for (PredicatesTree childContainer : predicates.children()) {
-                if (!test(element, childContainer)) {
+        if (predicates.isAnd()) {
+            if (predicates.hasPredicates()) {
+                if (!HasContainer.testAll(element, Lists.newLinkedList(predicates.predicates()))) {
                     return false;
                 }
             }
 
-            return true;
-        } else {
-            for (HasContainer predicate : predicates.predicates()) {
-                if (predicate.test(element)) {
-                    return true;
+            if (predicates.hasChildren()) {
+                for (PredicatesTree childContainer : predicates.children()) {
+                    if (!test(element, childContainer)) {
+                        return false;
+                    }
                 }
             }
-            for (PredicatesTree child : predicates.children()) {
-                if (test(element, child)) {
-                    return true;
+
+            return true;
+        } else if (predicates.isOr()) {
+            if (predicates.hasPredicates()) {
+                for (HasContainer predicate : predicates.predicates()) {
+                    if (predicate.test(element)) {
+                        return true;
+                    }
+                }
+            }
+
+            if (predicates.hasChildren()) {
+                for (PredicatesTree child : predicates.children()) {
+                    if (test(element, child)) {
+                        return true;
+                    }
                 }
             }
 
             return false;
+        } else {
+            throw new IllegalStateException(String.format("Unexpected predicates-tree '%s' was given", predicates));
         }
     }
 

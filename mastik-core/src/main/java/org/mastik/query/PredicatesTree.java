@@ -71,21 +71,21 @@ public class PredicatesTree {
      * Whether this tree has predicates
      */
     public boolean hasPredicates() {
-        return !this.predicates.isEmpty();
+        return this.predicates != null && !this.predicates.isEmpty();
     }
 
     /**
      * Whether this tree has child trees
      */
     public boolean hasChildren() {
-        return !this.children.isEmpty();
+        return this.children != null && !this.children.isEmpty();
     }
 
     /**
      * Whether this tree has predicates or child trees
      */
     public boolean isEmpty() {
-        return this.predicates.isEmpty() && this.children.isEmpty();
+        return !hasChildren() && !hasPredicates();
     }
 
     /**
