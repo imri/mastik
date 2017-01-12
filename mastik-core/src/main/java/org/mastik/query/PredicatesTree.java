@@ -88,6 +88,11 @@ public class PredicatesTree {
         return !hasChildren() && !hasPredicates();
     }
 
+    @Override
+    public String toString() {
+        return String.format("PredicatesTree{predicates=%s, children=%s}", this.predicates, this.children);
+    }
+
     /**
      * Create an 'and' predicates tree
      *

@@ -81,6 +81,6 @@ public class Query<E extends Element> extends PredicatesQuery<E> {
 
     @Override
     public String toString() {
-        return String.format("Query{returnType=%s, limit=%s}", this.returnType, this.limit);
+        return String.format("Query{returnType=%s, predicates=%s, limit=%s}", this.returnType.getSimpleName(), this.getPredicates(), this.limit);
     }
 }
