@@ -89,7 +89,7 @@ public class BaseMastikElement<TProperty extends Property> implements Element {
      */
     public <V> Stream<? extends Property<V>> propertiesStream(String... propertyKeys) {
         if (propertyKeys.length == 0) {
-            return (Stream) this.properties.values();
+            return (Stream) this.properties.values().stream();
         }
 
         return (Stream)Arrays.stream(propertyKeys)
