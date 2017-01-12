@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 /**
  * Mastik implementation of {@link VertexStep}
- *
+ * <p>
  * Per each {@link Traverser}s bulk, extracts the inner {@link Vertex} objects,
  * performs a {@link VertexQuery}, then maps the results back to the traversers
  *
@@ -76,29 +76,47 @@ public class MastikVertexStep<E extends Element> extends BulkStep<Vertex, E> {
 
     @Override
     protected Stream<Traverser.Admin<E>> process(List<Traverser.Admin<Vertex>> traversers) {
-        Set<Vertex> vertices = traversers.stream().map(Traverser::get).collect(Collectors.toSet());
-
-        Stream<Traverser.Admin<E>> traversersGenerator = fetchTraversersEdges(traversers, vertices);
-
-        if (this.returnsVertex()) {
-            fetchTraversersProperties(traversers);
-        }
-
-        return traversersGenerator;
-    }
-
-    private void fetchTraversersProperties(List<Traverser.Admin<Vertex>> traversers) {
-        // @todo: get properties
-    }
-
-    private Stream<Traverser.Admin<E>> fetchTraversersEdges(List<Traverser.Admin<Vertex>> traversers, Set<Vertex> vertices) {
-        Map<Object, List<Traverser.Admin<Vertex>>> traversersByVertexId = traversers.stream()
+        Map<Object, List<Traverser.Admin<Vertex>>> verticesToTraversers = traversers.stream()
                 .collect(Collectors.groupingBy(traverser -> traverser.get().id()));
 
-        VertexQuery query = new VertexQuery(vertices, this.direction, this.predicates, this.limit, this.edgeLabels, this.orders);
-        return this.backend.queryVertex(query)
-                .flatMap(edge -> getEdgeTraversers(edge, traversersByVertexId));
+        Stream<Traverser.Admin<E>> traversersToReturn = queryVerticesEdges(verticesToTraversers.keySet())
+                .flatMap(edge -> getEdgeTraversers(edge, verticesToTraversers));
 
+        if (this.returnsVertex()) {
+            return createDeferredVerticesTraversers((List)traversersToReturn.collect(Collectors.toList()));
+        }
+
+        return traversersToReturn;
+    }
+
+    /**
+     * Given a list of Vertex traversers, creates deferred vertices from it,
+     * and returns a stream of traversers containing the deferred vertices
+     * @param traversers List of vertices traversers
+     * @return Stream of deferred vertices traversers
+     */
+    private Stream<Traverser.Admin<Vertex>> createDeferredVerticesTraversers(List<Traverser.Admin<Vertex>> traversers) {
+        Set<Object> vertexIds = traversers.stream()
+                .map(Traverser::get)
+                .map(Element::id)
+                .collect(Collectors.toSet());
+
+        Map<Object, Vertex> verticesById = this.backend.getVerticesDeferred(vertexIds)
+                .collect(Collectors.toMap(Vertex::id, vertex -> vertex));
+
+        return traversers.stream()
+                .map(traverser -> {
+                    if (verticesById.containsKey(traverser.get().id()))
+                        traverser.set(verticesById.get(traverser.get().id()));
+
+                    return traverser;
+                });
+    }
+
+    private Stream<Edge> queryVerticesEdges(Set<Object> vertexIds) {
+        VertexQuery query = new VertexQuery(vertexIds, this.direction, this.predicates, this.limit, this.edgeLabels, this.orders);
+
+        return this.backend.queryVertex(query);
     }
 
     private Stream<Traverser.Admin<E>> getEdgeTraversers(Edge edge, Map<Object, List<Traverser.Admin<Vertex>>> traversersByVertexId) {

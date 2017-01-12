@@ -2,6 +2,7 @@ package org.mastik;
 
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.util.Map;
 
@@ -26,4 +27,9 @@ public interface ElementCreator {
      * Creates a new instance of a Vertex given raw arguments
      */
     Vertex createVertex(String vertexId, Map<String, Object> properties, Backend backend);
+
+    /**
+     * Creates a new instance of a Vertex given arguments
+     */
+    Vertex createDeferredVertex(String vertexId, Map<String, VertexProperty> properties, Backend backend);
 }

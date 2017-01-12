@@ -3,10 +3,8 @@ package org.mastik.query;
 import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.javatuples.Pair;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -19,21 +17,21 @@ import java.util.Set;
  */
 public class VertexQuery extends Query<Edge> {
 
-    private final Collection<Vertex> vertices;
+    private final Set<Object> vertexIds;
     private final Direction direction;
 
-    public VertexQuery(Collection<Vertex> vertices, Direction direction, PredicatesTree predicatesContainer, int limit, Set<String> propertyKeys, List<Pair<String, Order>> orders) {
+    public VertexQuery(Set<Object> vertexIds, Direction direction, PredicatesTree predicatesContainer, int limit, Set<String> propertyKeys, List<Pair<String, Order>> orders) {
         super(Edge.class, predicatesContainer, limit, propertyKeys, orders);
 
-        this.vertices = vertices;
+        this.vertexIds = vertexIds;
         this.direction = direction;
     }
 
     /**
-     * Returns the vertices that their edges queried
+     * Returns the ids of vertices that their edges queried
      */
-    public Collection<Vertex> getVertices() {
-        return Collections.unmodifiableCollection(vertices);
+    public Set<Object> getVertexIds() {
+        return Collections.unmodifiableSet(vertexIds);
     }
 
     /**
@@ -50,13 +48,13 @@ public class VertexQuery extends Query<Edge> {
         }
 
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            if (vertices.contains(element.outVertex())) {
+            if (vertexIds.contains(element.outVertex().id())) {
                 return true;
             }
         }
 
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            if (vertices.contains(element.inVertex())) {
+            if (vertexIds.contains(element.inVertex().id())) {
                 return true;
             }
         }
@@ -66,6 +64,6 @@ public class VertexQuery extends Query<Edge> {
 
     @Override
     public String toString() {
-        return String.format("VertexQuery{vertices=%s, direction=%s, limit=%s}", vertices, direction, getLimit());
+        return String.format("VertexQuery{vertices=%s, direction=%s, limit=%s}", this.vertexIds, this.direction, this.getLimit());
     }
 }

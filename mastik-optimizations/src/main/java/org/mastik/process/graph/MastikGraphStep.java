@@ -12,7 +12,6 @@ import org.mastik.ElementUtils;
 import org.mastik.process.TraversalPredicatesCollector;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.Query;
-import org.mastik.query.VertexQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +31,7 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
     private PredicatesTree predicates;
     private List<Pair<String, Order>> orders;
     private Backend backend;
+    private Set<Object> elementIds;
 
     public MastikGraphStep(Traversal.Admin traversal, Class<E> returnClass, boolean isStartStep, Set<Object> elementIds,
                            int limit, PredicatesTree predicates, List<Pair<String, Order>> orders, Backend backend) {
@@ -39,9 +39,10 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
 
         ElementHelper.validateMixedElementIds(returnClass, elementIds);
 
+        this.elementIds = elementIds;
         this.returnClass = returnClass;
         this.limit = limit;
-        this.predicates = createInitialPredicatesTree(predicates, elementIds);
+        this.predicates = predicates;
         this.orders = orders;
         this.backend = backend;
 
@@ -49,19 +50,10 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
     }
 
     /**
-     * Creates the initial predicates-tree, containing a predicate of ids and the given predicates tree
-     */
-    private static PredicatesTree createInitialPredicatesTree(PredicatesTree predicates, Set<Object> elementIds) {
-
-        PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(elementIds);
-        return PredicatesTree.and(idsPredicate, predicates);
-    }
-
-    /**
      * Creates a {@link MastikGraphStep}  from a {@link GraphStep}
      *
      * @param graphStep VertexStep to extract arguments from
-     * @param <E>        Type of step results
+     * @param <E>       Type of step results
      * @return New instance of VertexStep
      */
     public static <S, E extends Element> MastikGraphStep<S, E> fromGraphStep(GraphStep<S, E> graphStep, Backend backend) {
@@ -69,15 +61,31 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
 
         // @todo: collect order and limit
         return new MastikGraphStep<>(graphStep.getTraversal(), graphStep.getReturnClass(), graphStep.isStartStep(),
-                Sets.newHashSet(graphStep.getIds()), VertexQuery.noLimit(), predicates, VertexQuery.noOrders(), backend);
+                Sets.newHashSet(graphStep.getIds()), Query.noLimit(), predicates, Query.noOrders(), backend);
     }
 
     /**
      * Queries the backend for results
      */
     protected Iterator<E> process() {
-        Query<E> query = new Query<>(this.returnClass, this.predicates, this.limit, Query.allProperties(), this.orders);
 
-        return this.backend.query(query).iterator();
+        if (this.returnsVertex() && this.canCreateDeferredVertices()) {
+            return (Iterator)this.backend.getVerticesDeferred(this.elementIds).iterator();
+        } else {
+            PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(this.elementIds);
+            PredicatesTree mergedPredicates = PredicatesTree.and(idsPredicate, this.predicates);
+
+            Query<E> query = new Query<>(this.returnClass, mergedPredicates, this.limit, Query.allProperties(), this.orders);
+
+            return this.backend.query(query).iterator();
+        }
+    }
+
+    /**
+     * If no predicates, limit and orders were set,
+     * this will return true. Otherwise, it'll return false.
+     */
+    private boolean canCreateDeferredVertices() {
+        return this.predicates == null && this.limit == Query.noLimit() && this.orders == Query.noOrders();
     }
 }

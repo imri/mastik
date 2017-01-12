@@ -39,7 +39,7 @@ public class MastikVertex extends BaseMastikVertex {
             predicatesContainer = PredicatesTree.emptyTree();
         }
 
-        VertexQuery searchVertexQuery = new VertexQuery(Collections.singletonList(this), direction, predicatesContainer, -1, null, null);
+        VertexQuery searchVertexQuery = new VertexQuery(Collections.singleton(id()), direction, predicatesContainer, -1, null, null);
         return backend().queryVertex(searchVertexQuery);
     }
 

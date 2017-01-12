@@ -56,6 +56,14 @@ public class MastikElementCreator implements ElementCreator {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Vertex createDeferredVertex(String vertexId, Map<String, VertexProperty> properties, Backend backend) {
+        return new MastikVertex(vertexId, properties, backend);
+    }
+
+    /**
      * Creates a property given raw key and value
      */
     protected Property createProperty(String key, Object value) {
