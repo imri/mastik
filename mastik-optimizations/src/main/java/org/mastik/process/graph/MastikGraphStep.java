@@ -9,7 +9,7 @@ import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.javatuples.Pair;
 import org.mastik.Backend;
 import org.mastik.ElementUtils;
-import org.mastik.process.TraversalPredicatesCollector;
+import org.mastik.process.TraversalCollector;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.Query;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
      * @return New instance of VertexStep
      */
     public static <S, E extends Element> MastikGraphStep<S, E> fromGraphStep(GraphStep<S, E> graphStep, Backend backend) {
-        PredicatesTree predicates = TraversalPredicatesCollector.collect(graphStep, graphStep.getTraversal());
+        PredicatesTree predicates = TraversalCollector.collectPredicates(graphStep);
 
         // @todo: collect order and limit
         return new MastikGraphStep<>(graphStep.getTraversal(), graphStep.getReturnClass(), graphStep.isStartStep(),

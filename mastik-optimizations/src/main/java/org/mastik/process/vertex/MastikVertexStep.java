@@ -13,7 +13,7 @@ import org.mastik.Backend;
 import org.mastik.ElementUtils;
 import org.mastik.StreamUtils;
 import org.mastik.process.BulkStep;
-import org.mastik.process.TraversalPredicatesCollector;
+import org.mastik.process.TraversalCollector;
 import org.mastik.query.PredicatesTree;
 import org.mastik.query.VertexQuery;
 import org.slf4j.Logger;
@@ -67,7 +67,7 @@ public class MastikVertexStep<E extends Element> extends BulkStep<Vertex, E> {
      * @return New instance of VertexStep
      */
     public static <E extends Element> MastikVertexStep<E> fromVertexStep(VertexStep<E> vertexStep, Backend backend) {
-        PredicatesTree predicates = TraversalPredicatesCollector.collect(vertexStep, vertexStep.getTraversal());
+        PredicatesTree predicates = TraversalCollector.collectPredicates(vertexStep);
 
         // @todo: collect order and limit
         return new MastikVertexStep<>(vertexStep.getTraversal(), vertexStep.getReturnClass(), vertexStep.getDirection(),
