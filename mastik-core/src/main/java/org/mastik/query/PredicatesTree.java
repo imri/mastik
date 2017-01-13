@@ -158,8 +158,13 @@ public class PredicatesTree {
 
         nonEmptyTrees.forEach(tree -> {
             if (tree.isAnd()) {
-                predicates.addAll(tree.predicates());
-                children.addAll(tree.children());
+                if (tree.hasPredicates()) {
+                    predicates.addAll(tree.predicates());
+                }
+
+                if (tree.hasChildren()) {
+                    children.addAll(tree.children());
+                }
             } else {
                 children.add(tree); // if it is an 'or' tree
             }
