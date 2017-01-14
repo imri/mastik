@@ -192,13 +192,13 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
     }
 
     private <E extends Element> E createElement(Class<E> elementType, String elementId, Map<String, Object> properties) {
-        if (elementType.isAssignableFrom(Edge.class)) {
+        if (ElementUtils.isEdge(elementType)) {
             Vertex outVertex = this.elementCreator.createVertexFromId((String) properties.get(EDGE_OUT_VERTEX_PROPERTY), this);
             Vertex inVertex = this.elementCreator.createVertexFromId((String) properties.get(EDGE_IN_VERTEX_PROPERTY), this);
             String label = (String) properties.getOrDefault(EDGE_LABEL_PROPERTY, Edge.DEFAULT_LABEL);
 
             return (E) this.elementCreator.createEdge(elementId, label, properties, outVertex, inVertex, this);
-        } else if (elementType.isAssignableFrom(Vertex.class)) {
+        } else if (ElementUtils.isVertex(elementType)) {
             return (E) this.elementCreator.createVertex(elementId, properties, this);
         }
 

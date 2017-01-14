@@ -57,4 +57,22 @@ public class ElementUtils {
         HasContainer idPredicate = new HasContainer(T.id.getAccessor(), P.within(extractedIds));
         return PredicatesTree.createFromPredicates(idPredicate);
     }
+
+    /**
+     * Whether the given class is a Vertex
+     *
+     * @return True if it is a vertex, false otherwise
+     */
+    public static boolean isVertex(Class cls) {
+        return Vertex.class.isAssignableFrom(cls);
+    }
+
+    /**
+     * Whether the given class is a Edge
+     *
+     * @return True if it is an edge, false otherwise
+     */
+    public static boolean isEdge(Class cls) {
+        return Edge.class.isAssignableFrom(cls);
+    }
 }
