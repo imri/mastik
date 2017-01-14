@@ -13,28 +13,33 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * A lazy object that wraps a deferred vertex-query
+ *
  * @author imriqwe (imriqwe@gmail.com)
  * @since 1/7/17
  */
-public class DeferredVerticesContainer {
+class DeferredVerticesContainer {
     private Query<Vertex> verticesQuery;
     private Backend backend;
     private Map<Object, Map<String, VertexProperty>> verticesProperties;
 
-    public DeferredVerticesContainer(Query<Vertex> verticesQuery, Backend backend) {
+    DeferredVerticesContainer(Query<Vertex> verticesQuery, Backend backend) {
 
         this.verticesQuery = verticesQuery;
         this.backend = backend;
         this.verticesProperties = null;
     }
 
-    protected Map<String, VertexProperty> queryVertexProperties(Object vertexId) {
+    /**
+     * Given a vertex-id, if the stored query was not executed,
+     * executes the query and populated 'verticesProperties'.
+     * Then returns the properties map of the given vertex
+     * @param vertexId Id of a vertex to get its properties map
+     * @return Properties map of the given vertex-id
+     */
+    private Map<String, VertexProperty> queryVertexProperties(Object vertexId) {
         if (this.verticesProperties == null) {
-            this.verticesProperties = Maps.newHashMap();
-
-            this.backend.query(this.verticesQuery)
-                .forEach(vertex -> this.verticesProperties.put(vertex.id(), StreamUtils.toStream(vertex.properties())
-                        .collect(Collectors.toMap(Property::key, property -> property))));
+            query();
         }
 
         Map<String, VertexProperty> vertexProperties = this.verticesProperties.remove(vertexId);
@@ -46,10 +51,33 @@ public class DeferredVerticesContainer {
         return vertexProperties;
     }
 
+    /**
+     * Runs the stored query and populates 'verticesProperties'
+     */
+    private void query() {
+        this.verticesProperties = Maps.newHashMap();
+
+        this.backend.query(this.verticesQuery)
+            .forEach(vertex -> this.verticesProperties.put(vertex.id(), StreamUtils.toStream(vertex.properties())
+                    .collect(Collectors.toMap(Property::key, property -> property))));
+    }
+
+    /**
+     * Given a vertex-id, creates a properties map,
+     * which internally invokes 'queryVertexProperties' once a property is first requested
+     * @param vertexId Id of the vertex
+     * @return New instance of properties map
+     */
     public Map<String, VertexProperty> makeVertexPropertiesMap(Object vertexId) {
         return new Map<String, VertexProperty>() {
+            /**
+             * Properties of the vertex
+             */
             private Map<String, VertexProperty> properties;
-            
+
+            /**
+             * If properties is null, invoked 'queryVertexProperties' to get the properties of the vertex
+             */
             private Map<String, VertexProperty> getProperties() {
                 if (this.properties == null) {
                     this.properties = queryVertexProperties(vertexId);
