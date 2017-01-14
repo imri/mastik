@@ -141,6 +141,6 @@ public class MastikVertexStep<E extends Element> extends BulkStep<Vertex, E> {
      * @return True if returns vertices, false otherwise
      */
     private boolean returnsVertex() {
-        return Vertex.class.isAssignableFrom(this.returnClass);
+        return ElementUtils.isVertex(this.returnClass);
     }
 }

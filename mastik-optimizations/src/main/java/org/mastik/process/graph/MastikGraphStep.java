@@ -75,7 +75,7 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
             PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(this.elementIds);
             PredicatesTree mergedPredicates = PredicatesTree.and(idsPredicate, this.predicates);
 
-            Query<E> query = new Query<>(this.returnClass, mergedPredicates, this.limit, Query.allProperties(), this.orders);
+            Query<E> query = new Query<>(this.returnClass, mergedPredicates, this.limit, Query.allLabels(), this.orders);
 
             return this.backend.query(query).iterator();
         }
@@ -86,6 +86,6 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
      * this will return true. Otherwise, it'll return false.
      */
     private boolean canCreateDeferredVertices() {
-        return this.predicates.isEmpty() && this.limit == Query.noLimit() && this.orders == Query.noOrders();
+        return !this.elementIds.isEmpty() && this.predicates.isEmpty() && this.limit == Query.noLimit() && this.orders == Query.noOrders();
     }
 }

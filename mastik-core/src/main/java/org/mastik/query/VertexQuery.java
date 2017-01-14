@@ -20,8 +20,8 @@ public class VertexQuery extends Query<Edge> {
     private final Set<Object> vertexIds;
     private final Direction direction;
 
-    public VertexQuery(Set<Object> vertexIds, Direction direction, PredicatesTree predicatesContainer, int limit, Set<String> propertyKeys, List<Pair<String, Order>> orders) {
-        super(Edge.class, predicatesContainer, limit, propertyKeys, orders);
+    public VertexQuery(Set<Object> vertexIds, Direction direction, PredicatesTree predicatesContainer, int limit, Set<String> labels, List<Pair<String, Order>> orders) {
+        super(Edge.class, predicatesContainer, limit, labels, orders);
 
         this.vertexIds = vertexIds;
         this.direction = direction;
