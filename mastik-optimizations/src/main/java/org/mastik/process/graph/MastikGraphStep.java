@@ -75,7 +75,7 @@ public class MastikGraphStep<S, E extends Element> extends GraphStep<S, E> {
             PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(this.elementIds);
             PredicatesTree mergedPredicates = PredicatesTree.and(idsPredicate, this.predicates);
 
-            Query<E> query = new Query<>(this.returnClass, mergedPredicates, this.limit, Query.allProperties(), this.orders);
+            Query<E> query = new Query<>(this.returnClass, mergedPredicates, this.limit, Query.allLabels(), this.orders);
 
             return this.backend.query(query).iterator();
         }

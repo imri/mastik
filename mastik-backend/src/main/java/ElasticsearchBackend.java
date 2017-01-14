@@ -83,14 +83,14 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         PredicatesTree vertexPredicates = makeVertexEdgesPredicates(query.getVertexIds(), query.getDirection());
         PredicatesTree mergedPredicates = PredicatesTree.and(vertexPredicates, query.getPredicates()); // order is critical
 
-        Query<Edge> completeQuery = new Query<>(Edge.class, mergedPredicates, query.getLimit(), query.getPropertyKeys(), query.getOrders());
+        Query<Edge> completeQuery = new Query<>(Edge.class, mergedPredicates, query.getLimit(), query.getLabels(), query.getOrders());
         return this.query(completeQuery);
     }
 
     @Override
     public Stream<Vertex> getVerticesDeferred(Set<Object> verticesIds) {
         PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(verticesIds);
-        Query<Vertex> query = new Query<>(Vertex.class, idsPredicate, Query.noLimit(), Query.allProperties(), Query.noOrders());
+        Query<Vertex> query = new Query<>(Vertex.class, idsPredicate, Query.noLimit(), Query.allLabels(), Query.noOrders());
 
         DeferredVerticesContainer container = new DeferredVerticesContainer(query, this);
 
