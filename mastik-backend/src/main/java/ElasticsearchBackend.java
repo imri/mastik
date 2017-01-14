@@ -5,9 +5,8 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.elasticsearch.action.search.MultiSearchRequestBuilder;
-import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -34,7 +33,7 @@ import java.util.stream.Stream;
  * Elasticsearch Backend
  *
  * @author imriqwe (imriqwe@gmail.com)
- * @since  12/30/16
+ * @since 12/30/16
  */
 public class ElasticsearchBackend implements Backend, AutoCloseable {
 
@@ -57,89 +56,79 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         this.queryCreator = new ElasticsearchQueryCreator(EDGE_LABEL_PROPERTY);
     }
 
-    private Client createClient(Collection<String> clusterHosts) {
-        TransportClient client = TransportClient.builder().build();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Stream<Edge> queryVertex(VertexQuery vertexQuery) {
+        PredicatesTree vertexPredicates = createVertexEdgesPredicates(vertexQuery.getVertexIds(), vertexQuery.getDirection());
+        PredicatesTree mergedPredicates = PredicatesTree.and(vertexPredicates, vertexQuery.getPredicates()); // order is critical
 
-        for (String host : clusterHosts) {
-            try {
-                URI uri = new URI("http://" + host);
-                client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(uri.getHost()), uri.getPort()));
-            } catch (URISyntaxException|UnknownHostException e) {
-                logger.warn("Failed to add Elasticsearch node '{}' to client due to inner exception: {}", host, e);
-            }
-        }
-
-        return client;
+        Query<Edge> query = new Query<>(Edge.class, mergedPredicates, vertexQuery.getLimit(), vertexQuery.getLabels(), vertexQuery.getOrders());
+        return this.query(query);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Stream<Edge> queryVertex(VertexQuery query) {
-        // optimization for vertex out edges queries
-        // @todo: if it is an BOTH query, should we optimize it too?
-//        if (query.getDirection() == Direction.OUT) {
-//            return searchVerticesOutEdges(query);
-//        }
-
-        PredicatesTree vertexPredicates = makeVertexEdgesPredicates(query.getVertexIds(), query.getDirection());
-        PredicatesTree mergedPredicates = PredicatesTree.and(vertexPredicates, query.getPredicates()); // order is critical
-
-        Query<Edge> completeQuery = new Query<>(Edge.class, mergedPredicates, query.getLimit(), query.getLabels(), query.getOrders());
-        return this.query(completeQuery);
-    }
-
-    @Override
-    public Stream<Vertex> getVerticesDeferred(Set<Object> verticesIds) {
-        PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(verticesIds);
+    public Stream<Vertex> getVerticesDeferred(Set<Object> vertexIds) {
+        PredicatesTree idsPredicate = ElementUtils.createIdsPredicate(vertexIds);
         Query<Vertex> query = new Query<>(Vertex.class, idsPredicate, Query.noLimit(), Query.allLabels(), Query.noOrders());
 
         DeferredVerticesContainer container = new DeferredVerticesContainer(query, this);
 
-        return verticesIds.stream()
-                .map(vertexId -> elementCreator.createDeferredVertex((String)vertexId, container.makeVertexPropertiesMap(vertexId), this));
+        return vertexIds.stream()
+                .map(vertexId -> elementCreator.createDeferredVertex(
+                        vertexId.toString(), container.makeVertexPropertiesMap(vertexId), this));
     }
 
+    /**
+     * Given a {@link Query}, converts it to a {@link SearchRequestBuilder},
+     * sends it to Elasticsearch, then tests the results against the query
+     *
+     * @return Collection of result elements ({@link Vertex}s or {@link Edge}s)
+     */
     @Override
     public <E extends Element> Stream<E> query(Query<E> query) {
-        logger.info("Running query: {}", query);
-
-        SearchRequestBuilder searchRequest = this.createSearchRequest(query);
+        logger.debug("Running query: {}", query);
 
         try {
-            return this.search(query.getReturnType(), Collections.singletonList(searchRequest))
+            return this.search(query.getReturnType(), this.createSearchRequest(query))
                     .filter(element -> query.test(element, query.getPredicates()));
         } catch (IOException e) {
-            throw new RuntimeException("Search failed due to inner exception", e);
+            throw new RuntimeException("Query failed due to an inner exception", e);
         }
     }
 
-    private Iterator<Edge> searchVerticesOutEdges(VertexQuery query) {
-//        List<Search> searches = query
-//                .getVertexIds()
-//                .stream()
-//                .map(vertex -> createVertexOutEdgesSearch(query, queryBuilder, vertex.id()))
-//                .collect(Collectors.toList());
-//
-//        return null;
-        throw new IllegalStateException("Not implemented yet");
-    }
-
-    private PredicatesTree makeVertexEdgesPredicates(Set<Object> vertexIds, Direction direction) {
+    /**
+     * Given vertex-ids and any direction,
+     * creates predicates matching the edge documents in-id/out-id
+     */
+    private PredicatesTree createVertexEdgesPredicates(Set<Object> vertexIds, Direction direction) {
         if (direction == Direction.BOTH) {
             return PredicatesTree.or(
-                    makeVerticesPredicates(vertexIds, Direction.IN),
-                    makeVerticesPredicates(vertexIds, Direction.OUT));
+                    createVertexInOutPredicates(vertexIds, Direction.IN),
+                    createVertexInOutPredicates(vertexIds, Direction.OUT));
         }
 
-        return makeVerticesPredicates(vertexIds, direction);
+        return createVertexInOutPredicates(vertexIds, direction);
     }
 
-    private PredicatesTree makeVerticesPredicates(Set<Object> vertexIds, Direction direction) {
+    /**
+     * Given vertex-ids and a direction which is in/out,
+     * creates predicates matching the edge documents in-id/out-id
+     */
+    private PredicatesTree createVertexInOutPredicates(Set<Object> vertexIds, Direction direction) {
         String propertyName = direction == Direction.IN ? EDGE_IN_VERTEX_PROPERTY : EDGE_OUT_VERTEX_PROPERTY;
         HasContainer idsPredicate = new HasContainer(propertyName, P.within(vertexIds));
 
-        return PredicatesTree.or(idsPredicate);
+        return PredicatesTree.createFromPredicates(idsPredicate);
     }
 
+    /**
+     * Creates a {@link SearchRequestBuilder} from a given {@link Query}
+     */
     private <E extends Element> SearchRequestBuilder createSearchRequest(Query<E> query) {
         int limit = query.getLimit() >= 0 ? query.getLimit() : DEFAULT_QUERY_LIMIT;
 
@@ -169,33 +158,36 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         return searchRequestBuilder;
     }
 
-    private <E extends Element> String determineIndex(Query<E> query) {
-        if (query.getReturnType().isAssignableFrom(Edge.class)) {
-            return EDGES_INDICES;
-        } else if (query.getReturnType().isAssignableFrom(Vertex.class)) {
-            return VERTICES_INDICES;
+    /**
+     * Given a search-request, performs the search and returns {@link Stream} of elements
+     */
+    private <E extends Element> Stream<E> search(Class<E> returnType, SearchRequestBuilder search) throws IOException {
+        SearchResponse searchResponse = search.execute().actionGet();
+
+        if (searchResponse.status().getStatus() != 200) {
+            logger.warn("Request {} got {} response status, returned empty stream", search, searchResponse.status());
+
+            return Stream.empty();
         }
 
-        throw new IllegalStateException(String.format("Cannot execute query with '%s' return type", query.getReturnType()));
-    }
-
-    private <E extends Element> Stream<E> search(Class<E> returnType, List<SearchRequestBuilder> searches) throws IOException {
-        MultiSearchRequestBuilder multiSearch = this.client.prepareMultiSearch();
-        searches.forEach(multiSearch::add);
-
-        MultiSearchResponse response = multiSearch.execute().actionGet();
-
-        return Arrays.stream(response.getResponses())
-                .filter(item -> !item.isFailure())
-                .flatMap(item -> StreamUtils.toStream(item.getResponse().getHits().iterator()))
+        return StreamUtils.toStream(searchResponse.getHits().iterator())
                 .map(item -> createElement(returnType, item.getId(), item.getSource()));
     }
 
+    /**
+     * Given element type, id and properties,
+     * creates an instance of {@link Vertex} or {@link Edge} accordingly
+     *
+     * @return New instance of a Vertex of Edge, according to the given element type
+     */
     private <E extends Element> E createElement(Class<E> elementType, String elementId, Map<String, Object> properties) {
         if (ElementUtils.isEdge(elementType)) {
-            Vertex outVertex = this.elementCreator.createVertexFromId((String) properties.get(EDGE_OUT_VERTEX_PROPERTY), this);
-            Vertex inVertex = this.elementCreator.createVertexFromId((String) properties.get(EDGE_IN_VERTEX_PROPERTY), this);
-            String label = (String) properties.getOrDefault(EDGE_LABEL_PROPERTY, Edge.DEFAULT_LABEL);
+            String outVertexId = properties.get(EDGE_OUT_VERTEX_PROPERTY).toString();
+            String inVertexId = properties.get(EDGE_IN_VERTEX_PROPERTY).toString();
+            String label = properties.getOrDefault(EDGE_LABEL_PROPERTY, Edge.DEFAULT_LABEL).toString();
+
+            Vertex outVertex = this.elementCreator.createVertexFromId(outVertexId, this);
+            Vertex inVertex = this.elementCreator.createVertexFromId(inVertexId, this);
 
             return (E) this.elementCreator.createEdge(elementId, label, properties, outVertex, inVertex, this);
         } else if (ElementUtils.isVertex(elementType)) {
@@ -203,6 +195,40 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         }
 
         throw new IllegalStateException(String.format("Cannot create an element of type '%s'", elementType));
+    }
+
+    /**
+     * Given a query, returns the index it should be queried from
+     */
+    private <E extends Element> String determineIndex(Query<E> query) {
+        if (ElementUtils.isEdge(query.getReturnType())) {
+            return EDGES_INDICES;
+        } else if (ElementUtils.isVertex(query.getReturnType())) {
+            return VERTICES_INDICES;
+        }
+
+        throw new IllegalStateException(String.format("Cannot execute query with '%s' return type", query.getReturnType()));
+    }
+
+
+    /**
+     * Create an Elasticsearch client given cluster hosts
+     * @param nodes Collection of HOST:PORT strings, representing nodes in the cluster
+     * @return New instance of a client
+     */
+    private Client createClient(Collection<String> nodes) {
+        TransportClient client = TransportClient.builder().build();
+
+        for (String host : nodes) {
+            try {
+                URI uri = new URI("http://" + host);
+                client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(uri.getHost()), uri.getPort()));
+            } catch (URISyntaxException | UnknownHostException e) {
+                logger.warn("Failed to add Elasticsearch node '{}' to client due to inner exception: {}", host, e);
+            }
+        }
+
+        return client;
     }
 
     @Override
