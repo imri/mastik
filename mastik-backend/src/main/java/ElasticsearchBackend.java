@@ -105,7 +105,8 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         SearchRequestBuilder searchRequest = this.createSearchRequest(query);
 
         try {
-            return this.search(Collections.singletonList(searchRequest), query);
+            return this.search(query.getReturnType(), Collections.singletonList(searchRequest))
+                    .filter(element -> query.test(element, query.getPredicates()));
         } catch (IOException e) {
             throw new RuntimeException("Search failed due to inner exception", e);
         }
@@ -178,7 +179,7 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         throw new IllegalStateException(String.format("Cannot execute query with '%s' return type", query.getReturnType()));
     }
 
-    private <E extends Element> Stream<E> search(List<SearchRequestBuilder> searches, Query<E> query) throws IOException {
+    private <E extends Element> Stream<E> search(Class<E> returnType, List<SearchRequestBuilder> searches) throws IOException {
         MultiSearchRequestBuilder multiSearch = this.client.prepareMultiSearch();
         searches.forEach(multiSearch::add);
 
@@ -187,8 +188,7 @@ public class ElasticsearchBackend implements Backend, AutoCloseable {
         return Arrays.stream(response.getResponses())
                 .filter(item -> !item.isFailure())
                 .flatMap(item -> StreamUtils.toStream(item.getResponse().getHits().iterator()))
-                .map(item -> createElement(query.getReturnType(), item.getId(), item.getSource()))
-                .filter(element -> query.test(element, query.getPredicates()));
+                .map(item -> createElement(returnType, item.getId(), item.getSource()));
     }
 
     private <E extends Element> E createElement(Class<E> elementType, String elementId, Map<String, Object> properties) {
